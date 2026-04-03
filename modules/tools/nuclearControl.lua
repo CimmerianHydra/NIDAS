@@ -152,8 +152,8 @@ load()
 local DOWNTIME = 0.5
 local REACTOR_INVENTORY_SIZE = 54
 
-local counter = 1
 local checkingInterval = 20
+local counter = checkingInterval
 
 -- Pushes item from slot in reactor to first empty slot of provider inventory.
 -- (Provider inventory can be ME Interface, chest, etc.)
