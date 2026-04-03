@@ -30,6 +30,7 @@ local function save(data)
     full_fuel_rod_name = tostring(nuclearControlData.full_fuel_rod_name)
     depl_fuel_rod_name = tostring(nuclearControlData.depl_fuel_rod_name)
     coolant_cell_damage_threshold = tonumber(nuclearControlData.coolant_cell_damage_threshold)
+    enabled = nuclearControlData.enabled
     if nuclearControlData.redstone_address ~= nil and nuclearControlData.transposer_address ~= nil then
         file:write(serialization.serialize(nuclearControlData))
         os.sleep()
@@ -55,6 +56,7 @@ local function load()
             full_fuel_rod_name = tostring(nuclearControlData.full_fuel_rod_name)
             depl_fuel_rod_name = tostring(nuclearControlData.depl_fuel_rod_name)
             coolant_cell_damage_threshold = tonumber(nuclearControlData.coolant_cell_damage_threshold)
+            enabled = nuclearControlData.enabled
         end
         file:close()
     end
@@ -113,7 +115,7 @@ function nuclearControl.configure(x, y, gui, graphics, renderer, page)
         end
     end
     table.insert(onActivation, {displayName = "None", value = changeRedstone, args = {"None", renderingData}})
-    table.insert(currentConfigWindow, gui.smallButton(x+15, y+1, nuclearControlData.redstone_address or "None", gui.selectionBox, {x+16, y+1, onActivation}))
+    table.insert(currentConfigWindow, gui.smallButton(x+15, y+2, nuclearControlData.redstone_address or "None", gui.selectionBox, {x+16, y+2, onActivation}))
     
     -- Transposer selection box.
     graphics.text(3, 7, "Transposer")
@@ -125,7 +127,7 @@ function nuclearControl.configure(x, y, gui, graphics, renderer, page)
         end
     end
     table.insert(onActivation, {displayName = "None", value = changeTransposer, args = {"None", renderingData}})
-    table.insert(currentConfigWindow, gui.smallButton(x+15, y+2, nuclearControlData.transposer_address or "None", gui.selectionBox, {x+16, y+2, onActivation}))
+    table.insert(currentConfigWindow, gui.smallButton(x+15, y+3, nuclearControlData.transposer_address or "None", gui.selectionBox, {x+16, y+3, onActivation}))
 
     -- Configuration options for the singular nuclear reactor.
     local globalAttributeChangeList = {
@@ -139,7 +141,7 @@ function nuclearControl.configure(x, y, gui, graphics, renderer, page)
         {name = "",         attribute = nil,                        type = "header",    defaultValue = nil},
         {name = "Enable Reactor",           attribute = "enabled",                  type = "boolean", defaultValue = false}
     }
-    gui.multiAttributeList(x+3, y+4, page, currentConfigWindow, globalAttributeChangeList, nuclearControlData, nil, nil)
+    gui.multiAttributeList(x+3, y+4, page, currentConfigWindow, globalAttributeChangeList, nuclearControlData, nil, 50)
 
     local _, ySize = graphics.context().gpu.getBufferSize(page)
     table.insert(currentConfigWindow, gui.bigButton(x+2, y+tonumber(ySize)-4, "Save Configuration", save))
@@ -194,7 +196,7 @@ function nuclearControl.update(data)
     if not enabled then disengage() else
         if counter == checkingInterval then
             for slot = 1, REACTOR_INVENTORY_SIZE do
-                item = nuke_transposer.getStackInSlot(REACTOR_SIDE, slot)
+                item = transposer_proxy.getStackInSlot(transposer_chamber_side, slot)
                 if item then
                     if item.name == nuclearControlData.coolant_cell_name then
                         if item.damage >= coolant_cell_damage_threshold then
