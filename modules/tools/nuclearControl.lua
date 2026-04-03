@@ -77,9 +77,9 @@ local currentConfigWindow = {}
 local function changeRedstone(redstoneAddress, data)
     if redstoneAddress == "None" then
         nuclearControlData.redstone_address = "None"
-        redstone = nil
+        redstone_proxy = nil
     else
-        redstone = component.proxy(component.get(redstoneAddress))
+        redstone_proxy = component.proxy(component.get(redstoneAddress))
         nuclearControlData.redstone_address = redstoneAddress
     end
     local x, y, gui, graphics, renderer, page = table.unpack(data)
@@ -89,9 +89,9 @@ end
 local function changeTransposer(transposerAddress, data)
     if transposerAddress == "None" then
         nuclearControlData.transposer_address = "None"
-        transposer = nil
+        transposer_proxy = nil
     else
-        transposer = component.proxy(component.get(transposerAddress))
+        transposer_proxy = component.proxy(component.get(transposerAddress))
         nuclearControlData.transposer_address = transposerAddress
     end
     local x, y, gui, graphics, renderer, page = table.unpack(data)
