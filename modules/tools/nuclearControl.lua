@@ -105,8 +105,9 @@ function nuclearControl.configure(x, y, gui, graphics, renderer, page)
     local renderingData = {x, y, gui, graphics, renderer, page}
     graphics.context().gpu.setActiveBuffer(page)
 
-    -- Redstone input/output selection box.
+    -- Redstone input/output and transposer selection box.
     graphics.text(3, 5, "Redstone I/O")
+    graphics.text(3, 7, "Transposer")
     local onActivation = {}
     for address, componentType in component.list() do
         if componentType == "redstone" then
@@ -117,8 +118,6 @@ function nuclearControl.configure(x, y, gui, graphics, renderer, page)
     table.insert(onActivation, {displayName = "None", value = changeRedstone, args = {"None", renderingData}})
     table.insert(currentConfigWindow, gui.smallButton(x+15, y+2, nuclearControlData.redstone_address or "None", gui.selectionBox, {x+16, y+2, onActivation}))
     
-    -- Transposer selection box.
-    graphics.text(3, 7, "Transposer")
     local onActivation = {}
     for address, componentType in component.list() do
         if componentType == "transposer" then
@@ -160,7 +159,7 @@ local counter = checkingInterval
 
 -- Pushes item from slot in reactor to first empty slot of provider inventory.
 -- (Provider inventory can be ME Interface, chest, etc.)
-local function push_item_to_provider(source_slot, item_name)
+local function push_item_to_provider(source_slot)
     local provider_inventory_size = transposer_proxy.getInventorySize(transposer_provider_side)
 
     for slot = 1, provider_inventory_size do
@@ -202,8 +201,8 @@ function nuclearControl.update(data)
                         if item.damage >= coolant_cell_damage_threshold then
                             disengage()
                             os.sleep(DOWNTIME)
-                            push_item_to_provider(slot, nuclearControlData.coolant_cell_name)
-                            pull_item_from_provider(slot, nuclearControlData.coolant_cell_name)
+                            push_item_to_provider(slot)
+                            pull_item_from_provider(slot, coolant_cell_name)
                             os.sleep(DOWNTIME)
                             engage()
                         end
@@ -211,8 +210,8 @@ function nuclearControl.update(data)
                     if item.name == depl_fuel_rod_name then
                         disengage()
                         os.sleep(DOWNTIME)
-                        push_item_to_provider(slot, nuclearControlData.depl_fuel_rod_name)
-                        pull_item_from_provider(slot, nuclearControlData.full_fuel_rod_name)
+                        push_item_to_provider(slot)
+                        pull_item_from_provider(slot, full_fuel_rod_name)
                         os.sleep(DOWNTIME)
                         engage()
                     end
