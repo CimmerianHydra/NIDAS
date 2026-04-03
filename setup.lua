@@ -32,7 +32,7 @@ if arg[1] == "test" or arg[1] == "latest" then
 elseif arg[1] == "dev" or arg[1] == "staging" then
     NIDAS = "https://github.com/S4mpsa/NIDAS/releases/download/v0/NIDAS.tar"
 else
-    NIDAS = "https://github.com/S4mpsa/NIDAS/releases/latest/download/NIDAS.tar"
+    NIDAS = "https://github.com/CimmerianHydra/NIDAS/releases/latest/download/NIDAS.tar"
 end
 
 local successful =
