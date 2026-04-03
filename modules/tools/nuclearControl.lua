@@ -198,7 +198,7 @@ function nuclearControl.update(data)
             for slot = 1, REACTOR_INVENTORY_SIZE do
                 item = transposer_proxy.getStackInSlot(transposer_chamber_side, slot)
                 if item then
-                    if item.name == nuclearControlData.coolant_cell_name then
+                    if item.name == coolant_cell_name then
                         if item.damage >= coolant_cell_damage_threshold then
                             disengage()
                             os.sleep(DOWNTIME)
@@ -208,7 +208,7 @@ function nuclearControl.update(data)
                             engage()
                         end
                     end
-                    if item.name == nuclearControlData.depl_fuel_rod_name then
+                    if item.name == depl_fuel_rod_name then
                         disengage()
                         os.sleep(DOWNTIME)
                         push_item_to_provider(slot, nuclearControlData.depl_fuel_rod_name)
