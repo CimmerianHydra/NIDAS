@@ -8,7 +8,7 @@ Check out [our wiki](https://github.com/S4mpsa/NIDAS/wiki) for more information!
 # **Installation**
 * Download and run the `setup` file from the OC shell:
     ```shell
-    wget -f https://raw.githubusercontent.com/S4mpsa/NIDAS/master/setup.lua && setup
+    wget -f https://raw.githubusercontent.com/CimmerianHydra/NIDAS/master/setup.lua && setup
     ```
 
 # **Main Features**
