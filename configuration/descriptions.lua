@@ -6,7 +6,8 @@ local descriptions = {
     infusion = "Automatically infuses items when it can. Should have it's own computer and run attached to an ME subsystem. Doesn't require the server module to be running. For more information on how to set the altar up, see the README file on github.",
     autostocker = "Automatically stocks items to configured levels.",
     fluidDisplay = "Configures fluid levels shown on the HUD. Must be configured by every user.",
-    OreProcessing = "Automatically sorts incoming ores into their respective configurable ore processing lines."
+    OreProcessing = "Automatically sorts incoming ores into their respective configurable ore processing lines.",
+    nuclearControl = "Monitors and controls the state of an array of VacNukes. Can be configured to automatically handle turning the reactors off, swapping cells and fuel rods, and turning the reacotors on again.",
 }
 
 return descriptions
