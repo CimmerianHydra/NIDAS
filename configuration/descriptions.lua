@@ -7,7 +7,7 @@ local descriptions = {
     autostocker = "Automatically stocks items to configured levels.",
     fluidDisplay = "Configures fluid levels shown on the HUD. Must be configured by every user.",
     OreProcessing = "Automatically sorts incoming ores into their respective configurable ore processing lines.",
-    nuclearControl = "Monitors and controls the state of an array of VacNukes. Can be configured to automatically handle turning the reactors off, swapping cells and fuel rods, and turning the reacotors on again.",
+    nuclearControl = "Monitors and controls the state of a nuclear reactor. Handles turning the reactor off, swapping cells and fuel rods, and turning the reactor on again. Requires transposer and redstone I/O. For more information on how to set up the reactor, see the README file on github.",
 }
 
 return descriptions
