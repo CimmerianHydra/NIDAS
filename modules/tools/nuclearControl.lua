@@ -11,14 +11,14 @@ local transposer_addess = nil
 local redstone_proxy = nil
 local transposer_proxy = nil
 
-local transposer_chamber_side = nil
-local transposer_provider_side = nil
+local transposer_chamber_side = 0
+local transposer_provider_side = 1
 
 local coolant_cell_name = nil
 local full_fuel_rod_name = nil
 local depl_fuel_rod_name = nil
 
-local coolant_cell_damage_threshold = nil
+local coolant_cell_damage_threshold = 75
 
 local enabled = false
 
@@ -50,14 +50,26 @@ local function load()
             if nuclearControlData.transposer_address ~= "None" then transposer_proxy = component.proxy(component.get(nuclearControlData.transposer_address)) else
                 transposer_proxy = nil
             end
-            transposer_chamber_side = tonumber(nuclearControlData.transposer_chamber_side)
-            transposer_provider_side = tonumber(nuclearControlData.transposer_provider_side)
-            coolant_cell_name = tostring(nuclearControlData.coolant_cell_name)
-            full_fuel_rod_name = tostring(nuclearControlData.full_fuel_rod_name)
-            depl_fuel_rod_name = tostring(nuclearControlData.depl_fuel_rod_name)
-            coolant_cell_damage_threshold = tonumber(nuclearControlData.coolant_cell_damage_threshold)
-            enabled = nuclearControlData.enabled
         end
+        if nuclearControlData.transposer_chamber_side ~= nil then 
+            transposer_chamber_side = tonumber(nuclearControlData.transposer_chamber_side)
+        end
+        if nuclearControlData.transposer_provider_side ~= nil then
+            transposer_provider_side = tonumber(nuclearControlData.transposer_provider_side)
+        end
+        if nuclearControlData.coolant_cell_name ~= nil then
+            coolant_cell_name = tostring(nuclearControlData.coolant_cell_name)
+        end
+        if nuclearControlData.full_fuel_rod_name ~= nil then
+            full_fuel_rod_name = tostring(nuclearControlData.full_fuel_rod_name)
+        end
+        if nuclearControlData.depl_fuel_rod_name ~= nil then
+            depl_fuel_rod_name = tostring(nuclearControlData.depl_fuel_rod_name)
+        end
+        if nuclearControlData.coolant_cell_damage_threshold ~= nil then
+            coolant_cell_damage_threshold = tonumber(nuclearControlData.coolant_cell_damage_threshold)
+        end
+        enabled = nuclearControlData.enabled
         file:close()
     end
 end
@@ -78,11 +90,12 @@ local refresh = nil
 local currentConfigWindow = {}
 
 local function changeRedstone(redstoneAddress, data)
-    nuclearControlData.redstone_address = redstoneAddress
     if redstoneAddress == "None" then
+        nuclearControlData.redstone_address = "None"
         redstone_proxy = nil
     else
         redstone_proxy = component.proxy(component.get(redstoneAddress))
+        nuclearControlData.redstone_address = redstoneAddress
     end
     local x, y, gui, graphics, renderer, page = table.unpack(data)
     renderer.removeObject(currentConfigWindow)
@@ -90,11 +103,12 @@ local function changeRedstone(redstoneAddress, data)
 end
 
 local function changeTransposer(transposerAddress, data)
-    nuclearControlData.transposer_address = transposerAddress
     if transposerAddress == "None" then
+        nuclearControlData.transposer_address = "None"
         transposer_proxy = nil
     else
         transposer_proxy = component.proxy(component.get(transposerAddress))
+        nuclearControlData.transposer_address = transposerAddress
     end
     local x, y, gui, graphics, renderer, page = table.unpack(data)
     renderer.removeObject(currentConfigWindow)
@@ -133,9 +147,9 @@ function nuclearControl.configure(x, y, gui, graphics, renderer, page)
         {name = "Control Settings",         attribute = nil,                        type = "header",    defaultValue = nil},
         {name = " Reactor Chamber Side",     attribute = "transposer_chamber_side",  type = "number",    defaultValue = 0},
         {name = " Item Provider Side",       attribute = "transposer_provider_side", type = "number",    defaultValue = 1},
-        {name = " Full Fuel Rod Name",       attribute = "full_fuel_rod_name",       type = "string",    defaultValue = "gregtech:gt.RodUranium4"},
-        {name = " Depleted Fuel Rod Name",   attribute = "depl_fuel_rod_name",       type = "string",    defaultValue = "gregtech:gt.depletedRodUranium4"},
-        {name = " Coolant Cell Name",        attribute = "coolant_cell_name",        type = "string",    defaultValue = "gregtech:gt.360k_Helium_Coolantcell"},
+        {name = " Full Fuel Rod Name",       attribute = "full_fuel_rod_name",       type = "string",    defaultValue = "None"},
+        {name = " Depleted Fuel Rod Name",   attribute = "depl_fuel_rod_name",       type = "string",    defaultValue = "None"},
+        {name = " Coolant Cell Name",        attribute = "coolant_cell_name",        type = "string",    defaultValue = "None"},
         {name = " Coolant Cell Damage",      attribute = "coolant_cell_damage_threshold", type = "number", defaultValue = 75},
         {name = "",         attribute = nil,                        type = "header",    defaultValue = nil},
         {name = "Enable Reactor",           attribute = "enabled",                  type = "boolean", defaultValue = false}
@@ -154,13 +168,17 @@ load()
 local DOWNTIME = 0.5
 local REACTOR_INVENTORY_SIZE = 54
 
-local checkingInterval = 20
+local checkingInterval = 10
 local counter = checkingInterval
 
 -- Pushes item from slot in reactor to first empty slot of provider inventory.
 -- (Provider inventory can be ME Interface, chest, etc.)
 local function push_item_to_provider(source_slot)
     local provider_inventory_size = transposer_proxy.getInventorySize(transposer_provider_side)
+
+    if provider_inventory_size == nil then -- failsafe
+        provider_inventory_size = 9
+    end
 
     for slot = 1, provider_inventory_size do
         local stack = transposer_proxy.getStackInSlot(transposer_provider_side, slot)
@@ -171,17 +189,22 @@ local function push_item_to_provider(source_slot)
     end
 end
 
--- Pulls named item from provider inventory and places it in the specified slot of the reactor. Does not stop until it has found the item.
+-- Pulls named undamaged item from provider inventory and places it in the specified slot of the reactor. Does not stop until it has found the item.
 -- (Provider inventory can be ME Interface, chest, etc.)
+-- Note: This function will only pull items that are not damaged.
 local function pull_item_from_provider(destination_slot, item_name)
     local provider_inventory_size = transposer_proxy.getInventorySize(transposer_provider_side)
+
+    if provider_inventory_size == nil then -- failsafe
+        provider_inventory_size = 9
+    end
 
     local found = false
     repeat 
         for slot = 1, provider_inventory_size do
             local stack = transposer_proxy.getStackInSlot(transposer_provider_side, slot)
             if stack then
-                if stack.name == item_name then
+                if stack.name == item_name and stack.damage == 0 then
                     transposer_proxy.transferItem(transposer_provider_side, transposer_chamber_side, 1, slot, destination_slot)
                     found = true
                     break
@@ -195,7 +218,7 @@ function nuclearControl.update(data)
     if not enabled then disengage() else
         if counter == checkingInterval then
             for slot = 1, REACTOR_INVENTORY_SIZE do
-                item = transposer_proxy.getStackInSlot(transposer_chamber_side, slot)
+                local item = transposer_proxy.getStackInSlot(transposer_chamber_side, slot)
                 if item then
                     if item.name == coolant_cell_name then
                         if item.damage >= coolant_cell_damage_threshold then
