@@ -90,7 +90,7 @@ end
 refresh = powerControl.configure
 
 load()
-local checkingInterval = 1500
+local checkingInterval = 100
 local counter = checkingInterval
 function powerControl.update(data)
     if counter == checkingInterval then
